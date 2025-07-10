@@ -20,6 +20,59 @@
             white-space: nowrap;
             border: 0;
         }
+        
+        /* High contrast focus indicators */
+        .focus-visible:focus,
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid #f97316 !important;
+            outline-offset: 2px !important;
+            box-shadow: 0 0 0 2px #1e293b, 0 0 0 5px #f97316 !important;
+        }
+        
+        /* Improved button accessibility */
+        button {
+            min-height: 44px !important;
+            min-width: 44px !important;
+            position: relative;
+        }
+        
+        /* Skip link */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #f97316;
+            color: white;
+            padding: 8px;
+            z-index: 1000;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .skip-link:focus {
+            top: 6px;
+        }
+        
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+            .bg-slate-800 { background-color: #000000 !important; }
+            .bg-slate-900 { background-color: #000000 !important; }
+            .text-gray-300 { color: #ffffff !important; }
+            .border-slate-600 { border-color: #ffffff !important; }
+        }
+        
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -27,16 +80,20 @@
                 sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
+    <!-- Skip to main content link -->
+    <a href="#main-content" class="skip-link">Zum Hauptinhalt springen</a>
+    
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
         
-        // Icon Components (simplified versions of lucide-react icons)
+        // Icon Components
         const Power = ({ className }) => (
             <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2L12 12M19.5 8.5a7.5 7.5 0 11-15 0" />
@@ -80,13 +137,12 @@
 
         const IFAMobileApp = () => {
             const [isActive, setIsActive] = useState(false);
-            const [currentView, setCurrentView] = useState('onboarding-1'); // Start mit Onboarding
+            const [currentView, setCurrentView] = useState('onboarding-1');
             const [simulationInput, setSimulationInput] = useState('');
             const [selectedSender, setSelectedSender] = useState('SBB');
             const [messages, setMessages] = useState([]);
             const [signalStrength, setSignalStrength] = useState(0);
 
-            // Schweizer Sender Konfiguration mit IFA-Farbschema
             const [senders] = useState({
                 'SBB': { name: 'SBB', color: 'bg-red-400', enabled: true },
                 'Post': { name: 'Die Post', color: 'bg-yellow-400', enabled: true },
@@ -98,7 +154,6 @@
 
             const [senderConfig, setSenderConfig] = useState(senders);
 
-            // IFA Logo Komponente
             const IFALogo = ({ size = "w-10 h-10" }) => (
                 <div 
                     className={`${size} bg-orange-500 rounded-full flex items-center justify-center shadow-lg`}
@@ -109,7 +164,6 @@
                 </div>
             );
 
-            // Simuliere Signalstärke wenn aktiv
             useEffect(() => {
                 if (isActive) {
                     const interval = setInterval(() => {
@@ -126,20 +180,16 @@
                 const newState = !isActive;
                 setIsActive(newState);
                 
-                // Accessibility: Screen Reader Announcement
-                const announcement = newState ? 'IFA aktiviert. Sie empfangen jetzt Informationssignale.' : 'IFA deaktiviert. Signalempfang gestoppt.';
-                
                 if (newState) {
-                    // Willkommensnachricht beim Aktivieren
                     setTimeout(() => {
                         addMessage('System', 'IFA aktiviert - Empfang von Informationssignalen gestartet', 'bg-orange-500');
                     }, 500);
                 }
                 
-                // Screen Reader Announcement
                 setTimeout(() => {
                     const liveRegion = document.getElementById('live-announcements');
                     if (liveRegion) {
+                        const announcement = newState ? 'IFA aktiviert. Sie empfangen jetzt Informationssignale.' : 'IFA deaktiviert. Signalempfang gestoppt.';
                         liveRegion.textContent = announcement;
                     }
                 }, 100);
@@ -155,7 +205,6 @@
                 };
                 setMessages(prev => [...prev, newMessage]);
                 
-                // Screen Reader Announcement für neue Nachrichten
                 setTimeout(() => {
                     const liveRegion = document.getElementById('live-announcements');
                     if (liveRegion) {
@@ -171,9 +220,8 @@
                 addMessage(selectedSender, simulationInput);
                 setSimulationInput('');
                 
-                // Focus zurück zum Input für bessere UX
                 setTimeout(() => {
-                    const input = document.querySelector('input[placeholder="Ansage simulieren..."]');
+                    const input = document.querySelector('input[placeholder*="Ansage simulieren"]');
                     if (input) input.focus();
                 }, 100);
             };
@@ -188,7 +236,6 @@
                         }
                     };
                     
-                    // Screen Reader Announcement
                     setTimeout(() => {
                         const liveRegion = document.getElementById('live-announcements');
                         if (liveRegion) {
@@ -209,29 +256,29 @@
                 return React.createElement(WifiOff, { className: "w-6 h-6 text-red-400" });
             };
 
-            // Onboarding Schritt 1: Projektinfo
+            // Onboarding Schritt 1
             if (currentView === 'onboarding-1') {
                 return (
-                    <div className="max-w-md mx-auto bg-slate-800 min-h-screen text-white flex flex-col">
-                        {/* Header */}
-                        <div className="bg-slate-900 text-white p-4 text-center border-b border-slate-700">
+                    <div className="max-w-md mx-auto bg-slate-800 min-h-screen text-white flex flex-col" role="application" aria-label="IFA Mobile App">
+                        <div id="live-announcements" className="sr-only" aria-live="polite" aria-atomic="true"></div>
+                        
+                        <header className="bg-slate-900 text-white p-4 text-center border-b border-slate-700">
                             <IFALogo size="w-12 h-12" />
                             <h1 className="text-xl font-bold mt-2">Willkommen bei IFA</h1>
                             <p className="text-sm text-gray-300">Information für Alle</p>
-                        </div>
+                        </header>
 
-                        {/* Content */}
-                        <div className="flex-1 p-6 space-y-6">
+                        <main id="main-content" className="flex-1 p-6 space-y-6" tabIndex="-1">
                             <div className="text-center">
                                 <div className="text-orange-400 text-sm font-medium mb-2">Schritt 1 von 3</div>
-                                <div className="flex space-x-2 justify-center mb-6">
+                                <div className="flex space-x-2 justify-center mb-6" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="3">
                                     <div className="w-8 h-2 bg-orange-500 rounded-full"></div>
                                     <div className="w-8 h-2 bg-gray-600 rounded-full"></div>
                                     <div className="w-8 h-2 bg-gray-600 rounded-full"></div>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
+                            <section className="space-y-4">
                                 <h2 className="text-lg font-semibold text-orange-400">Was ist IFA?</h2>
                                 
                                 <p className="text-gray-100 leading-relaxed">
@@ -245,43 +292,40 @@
                                     und in Echtzeit an wichtigen Informationen in öffentlichen Räumen teilhaben können.
                                 </p>
 
-                                <div className="bg-slate-700 border border-slate-600 rounded-lg p-4">
+                                <figure className="bg-slate-700 border border-slate-600 rounded-lg p-4">
                                     <blockquote className="text-gray-200 italic text-sm leading-relaxed">
                                         "Ich möchte auditive Informationen genauso immersiv und selbstverständlich erhalten 
                                         wie alle hörenden Mitmenschen. Ich habe ein Recht dazu."
                                     </blockquote>
-                                    <footer className="mt-2 text-xs text-orange-400">
+                                    <figcaption className="mt-2 text-xs text-orange-400">
                                         — Sibylle Rau, Gehörlos, Stiftung "Zugang für alle"
-                                    </footer>
-                                </div>
-                            </div>
-                        </div>
+                                    </figcaption>
+                                </figure>
+                            </section>
+                        </main>
 
-                        {/* Navigation */}
-                        <div className="p-4 border-t border-slate-600">
+                        <nav className="p-4 border-t border-slate-600">
                             <button
                                 onClick={() => setCurrentView('onboarding-2')}
-                                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 px-6 rounded-lg font-medium transition-colors"
+                                className="w-full bg-orange-500 hover:bg-orange-600 focus:bg-orange-600 text-white py-3 px-6 rounded-lg font-medium transition-colors"
                             >
-                                Weiter
+                                Weiter zu Schritt 2
                             </button>
-                        </div>
+                        </nav>
                     </div>
                 );
             }
 
-            // Onboarding Schritt 2: Anleitung
+            // Onboarding Schritt 2
             if (currentView === 'onboarding-2') {
                 return (
                     <div className="max-w-md mx-auto bg-slate-800 min-h-screen text-white flex flex-col">
-                        {/* Header */}
-                        <div className="bg-slate-900 text-white p-4 text-center border-b border-slate-700">
+                        <header className="bg-slate-900 text-white p-4 text-center border-b border-slate-700">
                             <h1 className="text-xl font-bold">So funktioniert's</h1>
                             <p className="text-sm text-gray-300">Demo-Anleitung</p>
-                        </div>
+                        </header>
 
-                        {/* Content */}
-                        <div className="flex-1 p-6 space-y-6">
+                        <main className="flex-1 p-6 space-y-6">
                             <div className="text-center">
                                 <div className="text-orange-400 text-sm font-medium mb-2">Schritt 2 von 3</div>
                                 <div className="flex space-x-2 justify-center mb-6">
@@ -291,65 +335,53 @@
                                 </div>
                             </div>
 
-                            <div className="space-y-5">
+                            <section className="space-y-5">
                                 <h2 className="text-lg font-semibold text-orange-400">Wie Sie die Demo nutzen:</h2>
 
-                                {/* Schritt 1 */}
                                 <div className="flex space-x-3">
-                                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                                        1
-                                    </div>
+                                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">1</div>
                                     <div>
                                         <h3 className="font-medium text-white">IFA aktivieren</h3>
                                         <p className="text-sm text-gray-300">Tippen Sie auf "Aktivieren" um den Signalempfang zu starten</p>
                                     </div>
                                 </div>
 
-                                {/* Schritt 2 */}
                                 <div className="flex space-x-3">
-                                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                                        2
-                                    </div>
+                                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">2</div>
                                     <div>
                                         <h3 className="font-medium text-white">Sender auswählen</h3>
                                         <p className="text-sm text-gray-300">Wählen Sie einen Sender (SBB, Post, ZVV, etc.) für die Simulation</p>
                                     </div>
                                 </div>
 
-                                {/* Schritt 3 */}
                                 <div className="flex space-x-3">
-                                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
-                                        3
-                                    </div>
+                                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">3</div>
                                     <div>
                                         <h3 className="font-medium text-white">Ansage simulieren</h3>
                                         <p className="text-sm text-gray-300">Geben Sie eine Nachricht ein und senden Sie diese ab</p>
                                     </div>
                                 </div>
 
-                                {/* Info Box */}
-                                <div className="bg-blue-900 border border-blue-700 rounded-lg p-4">
+                                <aside className="bg-blue-900 border border-blue-700 rounded-lg p-4">
                                     <h3 className="font-medium text-blue-300 mb-2">💡 Demo-Hinweis</h3>
                                     <p className="text-sm text-blue-100">
                                         Dies ist eine Demonstration. In der Realität würden Sie automatisch 
                                         Ansagen von öffentlichen Lautsprechern empfangen - ohne manuellen Input.
                                     </p>
-                                </div>
+                                </aside>
 
-                                {/* Beispiele */}
-                                <div className="bg-slate-700 border border-slate-600 rounded-lg p-4">
+                                <section className="bg-slate-700 border border-slate-600 rounded-lg p-4">
                                     <h3 className="font-medium text-gray-200 mb-2">Beispiel-Ansagen:</h3>
                                     <ul className="text-sm text-gray-300 space-y-1">
                                         <li>• "Zug nach Basel hat 5 Minuten Verspätung"</li>
                                         <li>• "Nächster Halt: Hauptbahnhof"</li>
                                         <li>• "Notausgang rechts verwenden"</li>
                                     </ul>
-                                </div>
-                            </div>
-                        </div>
+                                </section>
+                            </section>
+                        </main>
 
-                        {/* Navigation */}
-                        <div className="p-4 border-t border-slate-600 flex space-x-3">
+                        <nav className="p-4 border-t border-slate-600 flex space-x-3">
                             <button
                                 onClick={() => setCurrentView('onboarding-1')}
                                 className="flex-1 bg-slate-600 hover:bg-slate-500 text-white py-3 px-6 rounded-lg font-medium transition-colors"
@@ -362,7 +394,7 @@
                             >
                                 Demo starten
                             </button>
-                        </div>
+                        </nav>
                     </div>
                 );
             }
@@ -370,21 +402,18 @@
             if (currentView === 'info') {
                 return (
                     <div className="max-w-md mx-auto bg-slate-800 min-h-screen text-white">
-                        <div id="live-announcements" className="sr-only" aria-live="polite" aria-atomic="true"></div>
-                        
                         <div className="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-700">
                             <button 
                                 onClick={() => setCurrentView('main')}
                                 className="text-white hover:bg-slate-700 p-2 rounded transition-colors"
-                                aria-label="Zurück zur Hauptansicht"
                             >
                                 ← Zurück
                             </button>
-                            <h1 className="text-lg font-semibold" id="info-title">Projektinformation</h1>
-                            <div className="w-10" aria-hidden="true"></div>
+                            <h1 className="text-lg font-semibold">Projektinformation</h1>
+                            <div className="w-10"></div>
                         </div>
 
-                        <div className="p-4 space-y-6" role="main" aria-labelledby="info-title">
+                        <div className="p-4 space-y-6">
                             <div className="text-center py-4">
                                 <IFALogo size="w-20 h-20" />
                             </div>
@@ -395,73 +424,24 @@
                                     <strong className="text-white"> Stiftung "Zugang für Alle"</strong>, die darauf abzielt, 
                                     die grosse Lücke der informationellen Inklusion in öffentlichen Räumen zu schliessen.
                                 </p>
-                                
-                                <p className="text-gray-300 text-sm">
-                                    Diese App demonstriert, wie Menschen mit Hör- oder Sehbehinderungen gleichgestellt 
-                                    und in Echtzeit an wichtigen Informationen in öffentlichen Räumen teilhaben können.
-                                </p>
                             </div>
 
-                            <div className="mt-6 p-3 bg-slate-700 border border-orange-500 rounded-lg">
+                            <div className="bg-slate-700 border border-orange-500 rounded-lg p-4">
                                 <h2 className="text-orange-400 font-semibold mb-3">Das Projekt wurde unterstützt von:</h2>
                                 <ul className="space-y-2 text-sm text-gray-200">
-                                    <li className="flex items-start">
-                                        <span className="text-orange-400 mr-2">•</span>
-                                        Emma-Schaub Stiftung (CMS)
-                                    </li>
-                                    <li className="flex items-start">
-                                        <span className="text-orange-400 mr-2">•</span>
-                                        Procap
-                                    </li>
-                                    <li className="flex items-start">
-                                        <span className="text-orange-400 mr-2">•</span>
-                                        Fondation Johan et Jacqueline Faye
-                                    </li>
-                                    <li className="flex items-start">
-                                        <span className="text-orange-400 mr-2">•</span>
-                                        F.&A. Meyer-Baumann-Stiftung
-                                    </li>
-                                    <li className="flex items-start">
-                                        <span className="text-orange-400 mr-2">•</span>
-                                        Förderung des behindertengerechten Bauens
-                                    </li>
-                                    <li className="flex items-start">
-                                        <span className="text-orange-400 mr-2">•</span>
-                                        Roches-Utiger Stiftung
-                                    </li>
-                                    <li className="flex items-start">
-                                        <span className="text-orange-400 mr-2">•</span>
-                                        Rahn-Stiftung
-                                    </li>
+                                    <li>• Emma-Schaub Stiftung (CMS)</li>
+                                    <li>• Procap</li>
+                                    <li>• Fondation Johan et Jacqueline Faye</li>
+                                    <li>• F.&A. Meyer-Baumann-Stiftung</li>
+                                    <li>• Förderung des behindertengerechten Bauens</li>
+                                    <li>• Roches-Utiger Stiftung</li>
+                                    <li>• Rahn-Stiftung</li>
                                 </ul>
                             </div>
 
-                            <div className="bg-slate-700 border border-slate-600 rounded-lg p-4">
-                                <blockquote className="text-gray-200 italic text-sm leading-relaxed">
-                                    "Ich möchte auditive Informationen genauso immersiv und selbstverständlich erhalten 
-                                    wie alle hörenden Mitmenschen. Ich habe ein Recht dazu."
-                                </blockquote>
-                                <footer className="mt-2 text-xs text-orange-400">
-                                    — Sibylle Rau, Gehörlos, Stiftung "Zugang für alle"
-                                </footer>
-                            </div>
-
-                            <div className="bg-slate-700 border border-slate-600 rounded-lg p-4">
-                                <h3 className="text-white font-medium mb-2">Stiftung "Zugang für alle"</h3>
-                                <div className="text-sm text-gray-300 space-y-1">
-                                    <p>www.access-for-all.ch</p>
-                                    <p>ifa@access-for-all.ch</p>
-                                </div>
-                            </div>
-
-                            <div className="text-center text-xs text-gray-500 pt-4 border-t border-slate-600">
-                                IFA Mobile App - Demo Version
-                            </div>
-
-                            {/* Onboarding erneut starten */}
                             <button
                                 onClick={() => setCurrentView('onboarding-1')}
-                                className="w-full bg-slate-600 hover:bg-slate-500 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors mt-4"
+                                className="w-full bg-slate-600 hover:bg-slate-500 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors"
                             >
                                 🔄 Einführung erneut anzeigen
                             </button>
@@ -473,56 +453,40 @@
             if (currentView === 'settings') {
                 return (
                     <div className="max-w-md mx-auto bg-slate-800 min-h-screen text-white">
-                        <div id="live-announcements" className="sr-only" aria-live="polite" aria-atomic="true"></div>
-                        
                         <div className="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-700">
                             <button 
                                 onClick={() => setCurrentView('main')}
                                 className="text-white hover:bg-slate-700 p-2 rounded transition-colors"
-                                aria-label="Zurück zur Hauptansicht"
                             >
                                 ← Zurück
                             </button>
-                            <h1 className="text-lg font-semibold" id="settings-title">Sender Konfiguration</h1>
-                            <div className="w-10" aria-hidden="true"></div>
+                            <h1 className="text-lg font-semibold">Sender Konfiguration</h1>
+                            <div className="w-10"></div>
                         </div>
 
-                        <div className="p-4 space-y-4" role="main" aria-labelledby="settings-title">
+                        <div className="p-4 space-y-4">
                             <p className="text-gray-300 text-sm mb-4">
                                 Wählen Sie aus, von welchen Sendern Sie Informationen empfangen möchten:
                             </p>
                             
-                            <div role="group" aria-label="Sender-Einstellungen">
-                                {Object.entries(senderConfig).map(([id, sender]) => (
-                                    <div key={id} className="flex items-center justify-between p-3 border border-slate-600 rounded-lg bg-slate-700 mb-3">
-                                        <div className="flex items-center space-x-3">
-                                            <div 
-                                                className={`w-4 h-4 rounded-full ${sender.color}`}
-                                                aria-hidden="true"
-                                            ></div>
-                                            <span className="font-medium text-white">{sender.name}</span>
-                                        </div>
-                                        <button
-                                            onClick={() => toggleSender(id)}
-                                            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-                                                sender.enabled 
-                                                    ? 'bg-orange-500 text-white hover:bg-orange-600' 
-                                                    : 'bg-slate-600 text-gray-300 hover:bg-slate-500'
-                                            }`}
-                                            aria-label={`${sender.name} ${sender.enabled ? 'deaktivieren' : 'aktivieren'}`}
-                                            aria-pressed={sender.enabled}
-                                        >
-                                            {sender.enabled ? 'Aktiv' : 'Inaktiv'}
-                                        </button>
+                            {Object.entries(senderConfig).map(([id, sender]) => (
+                                <div key={id} className="flex items-center justify-between p-3 border border-slate-600 rounded-lg bg-slate-700">
+                                    <div className="flex items-center space-x-3">
+                                        <div className={`w-4 h-4 rounded-full ${sender.color}`}></div>
+                                        <span className="font-medium text-white">{sender.name}</span>
                                     </div>
-                                ))}
-                            </div>
-                            
-                            <div className="mt-6 p-3 bg-slate-700 border border-orange-500 rounded-lg" role="status" aria-live="polite">
-                                <p className="text-sm text-orange-400">
-                                    <strong>Aktive Sender:</strong> {Object.values(senderConfig).filter(s => s.enabled).length} von {Object.keys(senderConfig).length}
-                                </p>
-                            </div>
+                                    <button
+                                        onClick={() => toggleSender(id)}
+                                        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                                            sender.enabled 
+                                                ? 'bg-orange-500 text-white hover:bg-orange-600' 
+                                                : 'bg-slate-600 text-gray-300 hover:bg-slate-500'
+                                        }`}
+                                    >
+                                        {sender.enabled ? 'Aktiv' : 'Inaktiv'}
+                                    </button>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 );
@@ -544,21 +508,21 @@
                             <button 
                                 onClick={() => setCurrentView('info')}
                                 className="hover:bg-slate-700 p-2 rounded transition-colors"
-                                aria-label="Projektinformationen anzeigen"
+                                title="Projektinformationen"
                             >
                                 <Info className="w-5 h-5" />
                             </button>
                             <button 
                                 onClick={() => setCurrentView('settings')}
                                 className="hover:bg-slate-700 p-2 rounded transition-colors"
-                                aria-label="Sender-Einstellungen öffnen"
+                                title="Sender-Einstellungen"
                             >
                                 <Settings className="w-5 h-5" />
                             </button>
                         </div>
                     </header>
 
-                    <div className="bg-slate-700 p-3 border-b border-slate-600 flex items-center justify-between" role="banner">
+                    <div className="bg-slate-700 p-3 border-b border-slate-600 flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                             {getSignalIcon()}
                             <span className="text-sm text-gray-300" id="signal-status">
@@ -567,47 +531,41 @@
                         </div>
                         <button
                             onClick={handleActivation}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                            className={`flex items-center space-x-2 px-4 py-3 rounded-lg font-medium transition-colors ${
                                 isActive 
                                     ? 'bg-red-600 text-white hover:bg-red-700' 
                                     : 'bg-orange-500 text-white hover:bg-orange-600'
                             }`}
-                            aria-label={isActive ? 'IFA deaktivieren' : 'IFA aktivieren'}
-                            aria-describedby="signal-status"
                         >
-                            <Power className="w-4 h-4" aria-hidden="true" />
+                            <Power className="w-4 h-4" />
                             <span>{isActive ? 'Deaktivieren' : 'Aktivieren'}</span>
                         </button>
                     </div>
 
-                    <main className="flex-1 overflow-y-auto p-4 space-y-3" role="main" aria-label="Nachrichten-Bereich">
+                    <main className="flex-1 overflow-y-auto p-4 space-y-3">
                         {messages.length === 0 ? (
-                            <div className="text-center py-8" role="status" aria-live="polite">
+                            <div className="text-center py-8">
                                 <IFALogo size="w-16 h-16" />
                                 <div className="mt-4">
-                                    <Wifi className="w-12 h-12 text-gray-500 mx-auto mb-3" aria-hidden="true" />
+                                    <Wifi className="w-12 h-12 text-gray-500 mx-auto mb-3" />
                                     <p className="text-gray-400">
                                         {isActive ? 'Warten auf Informationssignale...' : 'IFA aktivieren um Nachrichten zu empfangen'}
                                     </p>
                                 </div>
                             </div>
                         ) : (
-                            <div role="log" aria-label="Empfangene Nachrichten" aria-live="polite">
+                            <div>
                                 {messages.map((message) => (
                                     <article 
                                         key={message.id} 
-                                        className="bg-slate-700 border border-slate-600 rounded-lg p-3"
-                                        aria-label={`Nachricht von ${senderConfig[message.sender]?.name || message.sender} um ${message.time}`}
+                                        className="bg-slate-700 border border-slate-600 rounded-lg p-3 mb-3"
                                     >
                                         <header className="flex items-center space-x-2 mb-1">
-                                            <div 
-                                                className={`w-3 h-3 rounded-full ${message.color}`}
-                                                aria-hidden="true"
-                                            ></div>
+                                            <div className={`w-3 h-3 rounded-full ${message.color}`}></div>
                                             <span className="font-medium text-sm text-gray-200">
                                                 {senderConfig[message.sender]?.name || message.sender}
                                             </span>
-                                            <time className="text-xs text-gray-400 ml-auto" dateTime={message.time}>
+                                            <time className="text-xs text-gray-400 ml-auto">
                                                 {message.time}
                                             </time>
                                         </header>
@@ -619,46 +577,38 @@
                     </main>
 
                     {isActive && (
-                        <footer className="border-t border-slate-600 bg-slate-700 p-4" role="complementary" aria-label="Nachricht simulieren">
+                        <footer className="border-t border-slate-600 bg-slate-700 p-4">
                             <div className="space-y-3">
+                                <select
+                                    value={selectedSender}
+                                    onChange={(e) => setSelectedSender(e.target.value)}
+                                    className="w-full px-3 py-2 border border-slate-500 rounded-lg text-sm bg-slate-600 text-white"
+                                >
+                                    {Object.entries(senderConfig)
+                                        .filter(([_, sender]) => sender.enabled)
+                                        .map(([id, sender]) => (
+                                            <option key={id} value={id}>{sender.name}</option>
+                                        ))}
+                                </select>
+                                
                                 <div className="flex space-x-2">
-                                    <label htmlFor="sender-select" className="sr-only">Sender auswählen</label>
-                                    <select
-                                        id="sender-select"
-                                        value={selectedSender}
-                                        onChange={(e) => setSelectedSender(e.target.value)}
-                                        className="px-3 py-2 border border-slate-500 rounded-lg text-sm bg-slate-600 text-white focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                        aria-label="Sender für Simulation auswählen"
-                                    >
-                                        {Object.entries(senderConfig)
-                                            .filter(([_, sender]) => sender.enabled)
-                                            .map(([id, sender]) => (
-                                                <option key={id} value={id}>{sender.name}</option>
-                                            ))}
-                                    </select>
-                                </div>
-                                <div className="flex space-x-2">
-                                    <label htmlFor="message-input" className="sr-only">Nachricht eingeben</label>
                                     <input
-                                        id="message-input"
                                         type="text"
                                         value={simulationInput}
                                         onChange={(e) => setSimulationInput(e.target.value)}
                                         placeholder="Ansage simulieren..."
-                                        className="flex-1 px-3 py-2 border border-slate-500 rounded-lg focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500 bg-slate-600 text-white placeholder-gray-400"
+                                        className="flex-1 px-3 py-2 border border-slate-500 rounded-lg bg-slate-600 text-white placeholder-gray-400"
                                         onKeyPress={(e) => e.key === 'Enter' && simulateAnnouncement()}
-                                        aria-describedby="simulation-help"
                                     />
                                     <button
                                         onClick={simulateAnnouncement}
                                         disabled={!simulationInput.trim()}
-                                        className="bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors focus:ring-2 focus:ring-orange-500 focus:outline-none"
-                                        aria-label="Nachricht senden"
+                                        className="bg-orange-500 text-white p-2 rounded-lg hover:bg-orange-600 disabled:bg-gray-600 transition-colors"
                                     >
-                                        <Plus className="w-5 h-5" aria-hidden="true" />
+                                        <Plus className="w-5 h-5" />
                                     </button>
                                 </div>
-                                <p id="simulation-help" className="text-xs text-gray-400">
+                                <p className="text-xs text-gray-400">
                                     Demo: Simulieren Sie eine Ansage von {senderConfig[selectedSender]?.name}
                                 </p>
                             </div>
